@@ -74,7 +74,12 @@
         const engineSelect = document.getElementById("engineSelect");
         const blockedEl = document.getElementById("blocked");
 
-        const WISP_URL = "wss://wisp-server-workers.dotlyhiyou.workers.dev/";
+        // Tried in order. Your own server's /wisp/ goes first because a Cloudflare Worker
+        // can't open connections to many sites (see the TLS handshake EOF error).
+        const WISP_URLS = [
+            (location.protocol === "https:" ? "wss:" : "ws:") + "//" + location.host + "/wisp/",
+            "wss://wisp-server-workers.dotlyhiyou.workers.dev/"
+        ];
 
         let scramjet = null;
         let frame = null;
@@ -125,15 +130,26 @@
                         (await navigator.serviceWorker.ready).active;
 
                     // Connect the transport to the wisp server
-                    const transport = new EpoxyTransport({ wisp: WISP_URL });
-                    const attempt = transport.init();
-                    attempt.catch(function() {});
-                    await Promise.race([
-                        attempt,
-                        new Promise(function(_, rej) {
-                            setTimeout(function() { rej(new Error("wisp timeout: " + WISP_URL)); }, 10000);
-                        })
-                    ]);
+                    let transport = null;
+                    for (const wisp of WISP_URLS) {
+                        try {
+                            const t = new EpoxyTransport({ wisp });
+                            const attempt = t.init();
+                            attempt.catch(function() {});
+                            await Promise.race([
+                                attempt,
+                                new Promise(function(_, rej) {
+                                    setTimeout(function() { rej(new Error("wisp timeout: " + wisp)); }, 10000);
+                                })
+                            ]);
+                            transport = t;
+                            console.log("Using wisp:", wisp);
+                            break;
+                        } catch (e) {
+                            console.warn("Wisp failed: " + wisp, e);
+                        }
+                    }
+                    if (!transport) throw new Error("All wisps failed");
 
                     scramjet = new Controller({
                         serviceworker,
