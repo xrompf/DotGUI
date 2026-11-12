@@ -1,37 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Starting Menu</title>
+    <title>pastpapergenie v3</title>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="monetag" content="cd3f6daab1950d56cc8284e65a83b1ba">
-<script>(function(){try{if(window.self!==window.top)return;}catch(e){return;}var s=document.createElement('script');s.dataset.zone='11810591';s.src='https://nap5k.com/tag.min.js';(document.documentElement||document.body).appendChild(s);})();</script>
+    <meta name="description" content="Browser games, web search proxy with Ultraviolet, chatrooms, and study tools." />
+    <meta property="og:title" content="pastpapergenie v3" />
+    <meta property="og:description" content="Browser games, web search proxy with Ultraviolet, chatrooms, and study tools." />
     <link rel="stylesheet" href="styles.css" />
-        <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q919W0VJ1S"></script>
-      <script>
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-Q919W0VJ1S');
-      </script>
-  </head>
+    <script src="theme.js"></script>
+<script async src="https://www.googletagmanager.com/gtm.js?id=GTM-K89L2PVJ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+</script>
+    </head>
   <body>
-    <script>try{var t=localStorage.getItem('dotgui_theme')||'fall';if(t!=='classic')document.body.dataset.theme=t;}catch(e){}</script>
+<div id="page">
+<header>
+<p class="logo"><a href="start.html">pastpapergenie <small>v3</small></a></p>
+<p class="blurb">Frutiger aero yams. follow @xrompf on tiktok</p>
+</header>
+<nav>
+<a href="start.html" class="start" aria-current="page">Home</a>
+<a href="select.html">Games</a>
+<a href="anime.html">Anime</a>
+<a href="movies.html">Movies/Series</a>
+<a href="chat.html">Chat</a>
+<a href="search.html">Search</a>
+<a href="tools.html">Tools</a>
+<a href="ai.html">AI</a>
+<a href="settings.html">Settings</a>
+<a href="about-us.html">About us</a>
+</nav>
+
+    
   <div id="main">
-    <main>
-      <div id="games">
-        <h1>Click here to continue:</h1>
-        <button type="button" class="nav-btn" onclick="location.href='start.html'">Proceed</button>
-        <br>
-        <h2>Alternative Access Methods:</h2>
-        <button type="button" class="nav-btn" onclick="location.href='launch.html'">via About:Blank (very reliable)</button>
-        <button type="button" class="nav-btn" onclick="location.href='https://github.com/dotgui-dev/DotGUI/releases/download/Single-V1/dotgui.html'">via Single File (offline play)</button>
+
+    <main id="homestuff">
+      <h1>Search the Web</h1>
+      <div class="search-container">
+        <input id="bar" type="text" placeholder="Search or enter URL..." autocomplete="off" spellcheck="false">
+        <button onclick="nav()">Go</button>
       </div>
-      <br>
-      <p>You can also <a href="https://github.com/dotgui-dev/DotGUI?tab=readme-ov-file#for-hosts">deploy to other hosting providers for your own links!</a></p>
+      <div class="button-container">
+        <button onclick="navTo('https://youtube.com')"><img src="media/quick/datube.svg" alt="YouTube"></button>
+        <button onclick="navTo('https://web.spotify.com')"><img src="media/quick/bigtify.svg" alt="Spotify"></button>
+        <button onclick="navTo('https://github.com')"><img src="media/quick/github.svg" alt="Github"></button>
+      </div>
+      <script src="search.js"></script>
+      <script>
+        function navTo(url) {
+            try { sessionStorage.setItem("searchQuery", url); } catch(e) {}
+            window.location.href = "search.html?q=" + encodeURIComponent(url);
+        }
+        function nav() {
+            var q = document.getElementById("bar").value.trim();
+            if (!q) return;
+            var target = (typeof search === "function") ? search(q) : q;
+            try { sessionStorage.setItem("searchQuery", target); } catch(e) {}
+            window.location.href = "search.html?q=" + encodeURIComponent(target);
+        }
+        document.getElementById("bar").addEventListener("keydown", function(e){ if(e.key==="Enter") nav(); });
+      </script>
+
     </main>
   </div>
+
   <script>
           // dotgui-panic: global panic key, guards typing
           document.addEventListener('keydown', function(e) {
@@ -53,6 +88,8 @@
             if (go && url) window.location.href = url;
           });
         </script>
+<footer><p>Licence problem or takedown request: contact details are being set up and will be here soon.</p></footer>
+</div>
 </body>
   <script>
     (function() {
@@ -83,6 +120,4 @@
       }
     })();
   </script>
-  <footer>
-  </footer>
-</html>
+  </html>

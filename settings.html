@@ -1,61 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>Settings</title>
+    <title>Settings - pastpapergenie v3</title>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="monetag" content="cd3f6daab1950d56cc8284e65a83b1ba">
-    <script>(function(){try{if(window.self!==window.top)return;}catch(e){return;}var s=document.createElement('script');s.dataset.zone='11810591';s.src='https://nap5k.com/tag.min.js';(document.documentElement||document.body).appendChild(s);})();</script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="favicon.ico" />
     <link rel="stylesheet" href="styles.css" />
-        <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q919W0VJ1S"></script>
-      <script>
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-Q919W0VJ1S');
-      </script>
+    <script src="theme.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
     <style>
-      #games { display: flex; justify-content: center; }
-      #games main { text-align: center; width: 100%; max-width: 900px; margin: 0 auto; }
-      #games main > div { display: inline-block; text-align: center; }
-      .setting-section { display: block; width: 100%; max-width: 600px; margin: 1.5rem auto; padding: 1rem; background: rgba(0,0,0,0.3); border-radius: 12px; }
-      .setting-section h2 { margin-top: 0; }
-      .setting-section p.desc { font-size: 0.95em; opacity: 0.9; }
-      #cloak-preview { display: flex; align-items: center; gap: 8px; justify-content: center; background: #1e1e1e; color: #fff; border-radius: 8px 8px 0 0; padding: 8px 12px; max-width: 320px; margin: 1rem auto 0; font-size: 0.9em; }
-      #cloak-preview img { width: 16px; height: 16px; }
-      .setting-row { margin: 0.6rem 0; }
-      .setting-row input[type="text"] { font-size: 1em; padding: 0.4em; border-radius: 8px; border: none; }
-      #panic-key { width: 3em; text-align: center; }
-      #panic-url { width: 90%; max-width: 380px; }
-      #settings-status { min-height: 1.5em; color: #00f2ff; }
+      .profile-editor {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 8px;
+      }
+      .profile-av-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .profile-av-preview {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        border: 2px solid var(--bline);
+        object-fit: cover;
+        background: var(--page);
+      }
+      .preset-grid {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 6px;
+      }
+      .preset-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 2px solid var(--line);
+        cursor: pointer;
+        overflow: hidden;
+        padding: 0;
+        background: var(--page);
+      }
+      .preset-btn img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .preset-btn:hover {
+        border-color: var(--link);
+      }
+      .sql-card {
+        background: #1e1e1e;
+        color: #f8f8f2;
+        padding: 10px 12px;
+        border-radius: var(--r);
+        font-family: monospace;
+        font-size: 11.5px;
+        overflow-x: auto;
+        max-height: 140px;
+        margin: 8px 0;
+      }
+      .status-pill {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: bold;
+        background: var(--panel);
+        color: var(--muted);
+      }
     </style>
-  </head>
+</head>
   <body>
-    <script>try{var t=localStorage.getItem('dotgui_theme')||'fall';if(t!=='classic')document.body.dataset.theme=t;}catch(e){}</script>
-    <nav>
-      <button type="button" class="nav-btn nav-home-btn"  onclick="location.href='start.html'">
-        <img src="favicon.ico" width="40px" height="40px" alt="Home">
-      </button>
-      <button type="button" class="nav-btn" onclick="window.location.href='select.html'">
-        <img src="media/nav-buttons/game.svg" width="40px" height="40px">
-      </button>
-      <button type="button" class="nav-btn" onclick="location.href='search.html'">
-        <img src="media/nav-buttons/search.svg" width="40px" height="40px">
-      </button>
-      <button type="button" class="nav-btn" onclick="location.href='tools.html'">
-        <img src="media/nav-buttons/tools.svg" width="40px" height="40px">
-      </button>
-      <button type="button" class="nav-btn" aria-current="page" onclick="location.href='settings.html'">
-        <img src="media/nav-buttons/settings.svg" width="40px" height="40px">
-      </button>
-      <button type="button" class="nav-btn" onclick="location.href='disclaimer.html'">
-        <img src="media/nav-buttons/disclaimer.svg" width="40px" height="40px">
-      </button>
-    </nav>
+<div id="page">
+<header>
+<p class="logo"><a href="start.html">pastpapergenie <small>v3</small></a></p>
+<p class="blurb">Browser games and web search. follow @xrompf on tiktok</p>
+</header>
+<nav>
+<a href="start.html">Home</a>
+<a href="select.html">Games</a>
+<a href="anime.html">Anime</a>
+<a href="movies.html">Movies/Series</a>
+<a href="chat.html">Chat</a>
+<a href="search.html">Search</a>
+<a href="tools.html">Tools</a>
+<a href="ai.html">AI</a>
+<a href="settings.html" class="start" aria-current="page">Settings</a>
+<a href="about-us.html">About us</a>
+</nav>
+
     <div id="games">
-      <main>
-        <h1>Settings:</h1>
+      <main class="bare">
+        <!-- User Profile Settings (Supabase) -->
+        <div class="setting-section">
+          <h2>User Profile (Supabase)</h2>
+          <p class="desc">Configure your display name, profile picture, and bio stored in the Supabase <code>profiles</code> table. <span id="auth-status-pill" class="status-pill">Checking account...</span></p>
+
+          <div class="profile-editor">
+            <div class="profile-av-row">
+              <img id="user-av-img" class="profile-av-preview" src="" alt="Profile picture preview">
+              <div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <button type="button" class="btn" id="btn-rand-identicon">🎲 Random Identicon</button>
+                  <button type="button" class="btn" id="btn-reset-identicon">Reset to Username</button>
+                </div>
+                <p class="note" style="margin:4px 0 0">GitHub-style deterministic 5x5 identicon generator.</p>
+              </div>
+            </div>
+
+            <div class="setting-row">
+              <label for="prof-display-name">Display Name:</label>
+              <input id="prof-display-name" type="text" maxlength="32" placeholder="Your name (e.g. Alex)" style="max-width:280px">
+            </div>
+
+            <div class="setting-row">
+              <label for="prof-av-url">Custom Picture URL:</label>
+              <input id="prof-av-url" type="url" placeholder="https://example.com/avatar.png" style="flex:1;max-width:380px">
+            </div>
+
+            <div>
+              <label style="font-size:12px;font-weight:bold;color:var(--muted)">Or pick a preset avatar:</label>
+              <div class="preset-grid" id="prof-presets-grid"></div>
+            </div>
+
+            <div class="setting-row" style="align-items:flex-start">
+              <label for="prof-bio">About Me / Bio:</label>
+              <textarea id="prof-bio" rows="2" maxlength="160" placeholder="What you are studying or playing..." style="flex:1;max-width:380px;font:inherit;padding:4px 8px;border:1px solid var(--bline);border-radius:var(--r);"></textarea>
+            </div>
+
+            <div class="setting-row">
+              <label for="prof-color">Name Color:</label>
+              <select id="prof-color"></select>
+            </div>
+
+            <div style="display:flex;gap:10px;align-items:center;margin-top:6px;flex-wrap:wrap">
+              <button class="go" id="btn-save-prof" type="button">Save Profile</button>
+              <button class="btn" id="btn-toggle-sql" type="button">View SQL Schema</button>
+              <span id="prof-save-status" style="font-size:12px;color:var(--link);font-weight:bold;"></span>
+            </div>
+
+            <!-- Link / Update Recovery Email in Settings -->
+            <div id="prof-email-row" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);">
+              <h3 style="margin:0 0 4px;font-size:13px;font-weight:bold;">Link / Update Recovery Email</h3>
+              <p class="desc" style="font-size:12px;margin:2px 0 8px;">Add your email to recover your account and receive chat notifications.</p>
+              <div class="setting-row">
+                <label for="prof-email-input">Email Address:</label>
+                <input id="prof-email-input" type="email" placeholder="you@example.com" style="max-width:280px">
+                <button type="button" class="btn" id="btn-update-prof-email">Update Email</button>
+              </div>
+              <p class="desc" style="font-size:11px;color:var(--muted);margin:4px 0 0;">
+                Confirmation link will redirect to: <span id="prof-email-redirect-preview" style="font-family:monospace;color:var(--link);word-break:break-all"></span>
+              </p>
+              <span id="prof-email-status" style="font-size:12px;font-weight:bold;display:block;margin-top:4px;"></span>
+            </div>
+
+            <div id="sql-schema-box" hidden>
+              <p class="note" style="margin-top:8px">Run this in your <strong>Supabase SQL Editor</strong> if you haven't added the <code>display_name</code> and <code>avatar_url</code> columns yet:</p>
+              <pre class="sql-card"><code>ALTER TABLE public.profiles 
+  ADD COLUMN IF NOT EXISTS display_name TEXT,
+  ADD COLUMN IF NOT EXISTS avatar_url TEXT,
+  ADD COLUMN IF NOT EXISTS bio TEXT;</code></pre>
+              <button type="button" class="btn" id="btn-copy-sql">Copy SQL</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab Cloak -->
         <div class="setting-section">
           <h2>Tab Cloak</h2>
           <p class="desc">Disguises the tab title and icon on every page. Default keeps each page real title.</p>
@@ -71,6 +186,8 @@
           </div>
           <div id="cloak-preview"><img id="preview-icon" alt=""><span id="preview-title">Settings</span></div>
         </div>
+
+        <!-- Panic Key -->
         <div class="setting-section">
           <h2>Panic Key</h2>
           <p class="desc">Press the key anywhere to instantly cloak to Google and jump to your redirect. Typing in search boxes never triggers it.</p>
@@ -86,18 +203,23 @@
             <input id="panic-url" type="text" autocomplete="off" spellcheck="false">
           </div>
         </div>
-        <div class="setting-section">
-          <h2>Theme</h2>
-<p class="desc">Classic is the default look. Dark pushes it to black, Light flips it for bright rooms, Primordial is a black-and-white throwback.</p>
 
-      <select id="themePick" style="font-size:1em;padding:0.5em;">
-<option value="classic">Classic</option>
-<option value="dark">Dark</option>
-<option value="light">Light</option>
-<option value="fall">Fall</option>
-<option value="primordial">Primordial</option>
-            </select>
-          </div>
+        <!-- Look -->
+        <div class="setting-section">
+          <h2>Look</h2>
+          <p class="desc">Select your color scheme and layout preferences.</p>
+          
+          <!-- Visual Theme Cards -->
+          <div class="theme-cards-grid" id="theme-swatches-grid"></div>
+
+          <p class="row"><label for="p-theme">Theme</label><select id="p-theme" data-pref="theme"><option value="aero">Aero (default)</option><option value="pink">Aero Pink</option><option value="luna">Luna, XP blue</option><option value="classic">Classic green</option><option value="night">Night</option></select></p>
+          <p class="row"><label for="p-font">Font</label><select id="p-font" data-pref="font"><option value="tahoma">Tahoma</option><option value="verdana">Verdana</option><option value="georgia">Georgia</option><option value="system">Your system font</option></select></p>
+          <p class="row"><label for="p-size">Text size</label><select id="p-size" data-pref="size"><option value="s">Small</option><option value="m">Normal</option><option value="l">Large</option></select></p>
+          <p class="row"><label for="p-width">Page width</label><select id="p-width" data-pref="width"><option value="n">Narrow</option><option value="m">Normal</option><option value="w">Wide</option></select></p>
+          <p class="row"><label for="p-corners">Corners</label><select id="p-corners" data-pref="corners"><option value="rd">Rounded</option><option value="sq">Square</option></select></p>
+        </div>
+
+        <!-- History -->
         <div class="setting-section">
           <h2>History</h2>
           <p class="desc">Recently played row on home keeps your last 4 games. <span id="recent-count"></span></p>
@@ -107,7 +229,254 @@
           </div>
           <p id="settings-status"></p>
         </div>
+
         <script>
+          const SUPABASE_URL = 'https://rdmvncnjmnpjqixfuzpt.supabase.co';
+          const SUPABASE_KEY = 'sb_publishable_rlTlh1l60XasCYbApw1QcA_zWU33wgM';
+
+          const COLORS = [
+            ['Pastel Pink', '#ee7fb5'],
+            ['Classic Blue', '#2a6ec2'],
+            ['Blurple', '#5865f2'],
+            ['Emerald Green', '#23a55a'],
+            ['Gold Yellow', '#c98a00'],
+            ['Amethyst Purple', '#7b3fb8'],
+            ['Teal', '#0f9d9d'],
+            ['Sunset Orange', '#e8710a'],
+            ['Ruby Red', '#d03b3b'],
+            ['Rose Pink', '#d63384']
+          ];
+
+          const GENIE_AVATAR = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"><rect width="64" height="64" rx="16" fill="#14263a"/><path d="M12 28L32 18L52 28L32 38L12 28Z" fill="#5fa8ee"/><polygon points="32,22 46,29 32,36 18,29" fill="#2a6ec2"/><rect x="22" y="34" width="20" height="12" rx="4" fill="#5fa8ee"/><circle cx="50" cy="36" r="3" fill="#c98a00"/><line x1="48" y1="29" x2="50" y2="36" stroke="#c98a00" stroke-width="2"/></svg>'
+          );
+
+          const PRESET_AVATARS = [
+            GENIE_AVATAR,
+            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces',
+            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=faces',
+            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=faces',
+            'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop&crop=faces',
+            'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop&crop=faces',
+            'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100&h=100&fit=crop&crop=faces'
+          ];
+
+          function getAuthRedirectUrl(targetPage = 'settings.html') {
+            let origin = window.location.origin;
+            if (!origin || /^(https?:\/\/localhost|https?:\/\/127\.0\.0\.1)/.test(origin)) {
+              const saved = localStorage.getItem('ppg_public_origin');
+              if (saved && !/localhost|127\.0\.0\.1/.test(saved)) {
+                origin = saved.replace(/\/$/, '');
+              } else {
+                origin = 'https://ais-dev-4g2c2pu73xxjkeoqrdpza3-1001155575646.europe-west2.run.app';
+              }
+            }
+            const cleanPage = targetPage.replace(/^\//, '');
+            return `${origin.replace(/\/$/, '')}/${cleanPage}`;
+          }
+
+          function stringHash(str) {
+            let hash = 2166136261;
+            for (let i = 0; i < str.length; i++) {
+              hash ^= str.charCodeAt(i);
+              hash = Math.imul(hash, 16777619);
+            }
+            return hash >>> 0;
+          }
+
+          function generateGitHubIdenticon(seed, size = 80) {
+            const hash = stringHash(seed || 'user');
+            const hue = hash % 360;
+            const color = `hsl(${hue}, 65%, 46%)`;
+            const bg = '#f0f3f6';
+            const pad = 10;
+            const cell = (size - pad * 2) / 5;
+            let rects = '';
+            for (let r = 0; r < 5; r++) {
+              for (let c = 0; c < 3; c++) {
+                const bit = ((hash >> (r * 3 + c)) & 1) === 1;
+                if (bit) {
+                  rects += `<rect x="${pad + c * cell}" y="${pad + r * cell}" width="${cell}" height="${cell}" fill="${color}"/>`;
+                  if (c < 2) {
+                    rects += `<rect x="${pad + (4 - c) * cell}" y="${pad + r * cell}" width="${cell}" height="${cell}" fill="${color}"/>`;
+                  }
+                }
+              }
+            }
+            return 'data:image/svg+xml;utf8,' + encodeURIComponent(
+              `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}"><rect width="${size}" height="${size}" rx="12" fill="${bg}"/>${rects}</svg>`
+            );
+          }
+
+          let sbClient = null;
+          let activeUser = null;
+          let randomSalt = 0;
+
+          // Populate color dropdown
+          const colorSel = document.getElementById('prof-color');
+          COLORS.forEach(([name, val]) => {
+            const opt = document.createElement('option');
+            opt.value = val;
+            opt.textContent = name;
+            colorSel.appendChild(opt);
+          });
+
+          // Preset buttons
+          const presetsGrid = document.getElementById('prof-presets-grid');
+          PRESET_AVATARS.forEach(url => {
+            const b = document.createElement('button');
+            b.className = 'preset-btn';
+            b.type = 'button';
+            const img = document.createElement('img');
+            img.src = url;
+            b.appendChild(img);
+            b.onclick = () => {
+              document.getElementById('prof-av-url').value = url;
+              document.getElementById('user-av-img').src = url;
+            };
+            presetsGrid.appendChild(b);
+          });
+
+          // Toggle SQL Schema box
+          document.getElementById('btn-toggle-sql').onclick = () => {
+            const box = document.getElementById('sql-schema-box');
+            box.hidden = !box.hidden;
+          };
+          document.getElementById('btn-copy-sql').onclick = () => {
+            const sql = `ALTER TABLE public.profiles \n  ADD COLUMN IF NOT EXISTS display_name TEXT,\n  ADD COLUMN IF NOT EXISTS avatar_url TEXT,\n  ADD COLUMN IF NOT EXISTS bio TEXT;`;
+            navigator.clipboard.writeText(sql).then(() => {
+              document.getElementById('btn-copy-sql').textContent = 'Copied!';
+              setTimeout(() => { document.getElementById('btn-copy-sql').textContent = 'Copy SQL'; }, 2000);
+            });
+          };
+
+          // Randomize identicon
+          document.getElementById('btn-rand-identicon').onclick = () => {
+            randomSalt = Math.floor(Math.random() * 100000);
+            const seed = (activeUser?.username || 'user') + '#' + randomSalt;
+            const svg = generateGitHubIdenticon(seed);
+            document.getElementById('user-av-img').src = svg;
+            document.getElementById('prof-av-url').value = '';
+          };
+          document.getElementById('btn-reset-identicon').onclick = () => {
+            const seed = activeUser?.username || 'user';
+            const svg = generateGitHubIdenticon(seed);
+            document.getElementById('user-av-img').src = svg;
+            document.getElementById('prof-av-url').value = '';
+          };
+          document.getElementById('prof-av-url').oninput = (e) => {
+            const u = e.target.value.trim();
+            if (u) document.getElementById('user-av-img').src = u;
+            else document.getElementById('user-av-img').src = generateGitHubIdenticon(activeUser?.username || 'user');
+          };
+
+          // Initialize Supabase profile
+          async function initProfileSettings() {
+            if (typeof window.supabase !== 'undefined' && window.supabase.createClient) {
+              sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+              try {
+                const { data: { session } } = await sbClient.auth.getSession();
+                if (session && session.user) {
+                  activeUser = session.user;
+                  document.getElementById('auth-status-pill').textContent = 'Logged in as ' + (activeUser.user_metadata?.username || activeUser.email);
+                  document.getElementById('auth-status-pill').style.color = '#1e6b37';
+
+                  // Fetch profile row
+                  const { data: prof } = await sbClient.from('profiles').select('*').eq('id', activeUser.id).maybeSingle();
+                  const localMeta = JSON.parse(localStorage.getItem('ppg_profiles_meta') || '{}')[activeUser.id] || {};
+                  const merged = Object.assign({}, activeUser.user_metadata, prof, localMeta);
+
+                  document.getElementById('prof-display-name').value = merged.display_name || merged.username || '';
+                  document.getElementById('prof-bio').value = merged.bio || '';
+                  if (merged.color) document.getElementById('prof-color').value = merged.color;
+                  if (merged.avatar_url) {
+                    document.getElementById('user-av-img').src = merged.avatar_url;
+                    if (!merged.avatar_url.startsWith('data:')) {
+                      document.getElementById('prof-av-url').value = merged.avatar_url;
+                    }
+                  } else {
+                    document.getElementById('user-av-img').src = generateGitHubIdenticon(merged.username || 'user');
+                  }
+                  if (activeUser.email && !activeUser.email.endsWith('@pastpapergenie.co.uk')) {
+                    document.getElementById('prof-email-input').value = activeUser.email;
+                  }
+                  const redirectPreviewEl = document.getElementById('prof-email-redirect-preview');
+                  if (redirectPreviewEl) {
+                    redirectPreviewEl.textContent = getAuthRedirectUrl('settings.html');
+                  }
+                  return;
+                }
+              } catch(e) {}
+            }
+
+            // Fallback for guest mode / local profile
+            document.getElementById('auth-status-pill').textContent = 'Guest / Local Mode';
+            const localSaved = JSON.parse(localStorage.getItem('ppg_guest_profile') || '{}');
+            document.getElementById('prof-display-name').value = localSaved.display_name || '';
+            document.getElementById('prof-bio').value = localSaved.bio || '';
+            if (localSaved.color) document.getElementById('prof-color').value = localSaved.color;
+            document.getElementById('user-av-img').src = localSaved.avatar_url || generateGitHubIdenticon('guest');
+            if (localSaved.avatar_url && !localSaved.avatar_url.startsWith('data:')) {
+              document.getElementById('prof-av-url').value = localSaved.avatar_url;
+            }
+          }
+
+          // Save Profile button
+          document.getElementById('btn-save-prof').onclick = async () => {
+            const stat = document.getElementById('prof-save-status');
+            const dName = document.getElementById('prof-display-name').value.trim();
+            const bio = document.getElementById('prof-bio').value.trim();
+            const color = document.getElementById('prof-color').value;
+            const av = document.getElementById('prof-av-url').value.trim() || document.getElementById('user-av-img').src;
+
+            stat.textContent = 'Saving...';
+
+            if (sbClient && activeUser) {
+              try {
+                // Update Supabase Auth user metadata
+                await sbClient.auth.updateUser({
+                  data: { display_name: dName, bio: bio, color: color, avatar_url: av }
+                });
+
+                // Update profiles table
+                try {
+                  await sbClient.from('profiles').update({
+                    display_name: dName,
+                    avatar_url: av,
+                    bio: bio,
+                    color: color
+                  }).eq('id', activeUser.id);
+                } catch(e2) {
+                  await sbClient.from('profiles').update({ color: color }).eq('id', activeUser.id);
+                }
+
+                // Cache locally
+                const all = JSON.parse(localStorage.getItem('ppg_profiles_meta') || '{}');
+                all[activeUser.id] = Object.assign(all[activeUser.id] || {}, { display_name: dName, avatar_url: av, bio: bio, color: color });
+                localStorage.setItem('ppg_profiles_meta', JSON.stringify(all));
+
+                stat.textContent = 'Saved to Supabase!';
+                setTimeout(() => { stat.textContent = ''; }, 3000);
+                return;
+              } catch (err) {
+                console.warn('Supabase profile save error:', err);
+              }
+            }
+
+            // Local fallback save
+            localStorage.setItem('ppg_guest_profile', JSON.stringify({
+              display_name: dName,
+              avatar_url: av,
+              bio: bio,
+              color: color
+            }));
+            stat.textContent = 'Saved locally!';
+            setTimeout(() => { stat.textContent = ''; }, 3000);
+          };
+
+          initProfileSettings();
+
+          // Cloak and Panic handlers
           var CLOAKS = {
             google: { title: 'Google', icon: 'https://www.google.com/favicon.ico' },
             vocab: { title: 'My Learning | Vocabulary.com', icon: 'https://www.vocabulary.com/favicon.ico' },
@@ -188,43 +557,148 @@
               localStorage.removeItem('tabCloaker');
               localStorage.removeItem('dotgui_recent');
               localStorage.removeItem('dotgui_favs');
-              localStorage.removeItem('dotgui_theme');
+              localStorage.removeItem('ppg_prefs');
               localStorage.setItem('dotgui_panic_key', PANIC_DEFAULTS.key);
               localStorage.setItem('dotgui_panic_url', PANIC_DEFAULTS.url);
               localStorage.setItem('dotgui_panic_redirect', 'true');
             } catch (e) {}
             tabCloaker.value = 'default';
             setTabCloak('default');
-            themePick.value = 'fall';
-            applyTheme('fall');
+            fillLook(); ppgApply();
             panicKey.value = PANIC_DEFAULTS.key;
             panicUrl.value = PANIC_DEFAULTS.url;
             panicRedirect.checked = true;
             refreshRecentCount();
             flash('All settings reset.');
           });
-          var themePick = document.getElementById('themePick');
-          function applyTheme(v) {
-            try {
-              if (v === 'classic') { delete document.body.dataset.theme; }
-              else { document.body.dataset.theme = v; }
-            } catch (e) {}
+          // Update recovery email handler
+          const btnProfEmail = document.getElementById('btn-update-prof-email');
+          if (btnProfEmail) {
+            btnProfEmail.onclick = async () => {
+              const em = document.getElementById('prof-email-input').value.trim();
+              const st = document.getElementById('prof-email-status');
+              if (!em) {
+                st.textContent = 'Please enter an email address.';
+                st.style.color = '#da373c';
+                return;
+              }
+              if (!sbClient) {
+                st.textContent = 'Supabase client is connecting, please try again.';
+                st.style.color = '#da373c';
+                return;
+              }
+              st.textContent = 'Sending confirmation email...';
+              st.style.color = 'var(--link)';
+              const redirectUrl = getAuthRedirectUrl('settings.html');
+              try {
+                const { data, error } = await sbClient.auth.updateUser(
+                  { email: em },
+                  { emailRedirectTo: redirectUrl }
+                );
+                if (error) {
+                  st.textContent = error.message;
+                  st.style.color = '#da373c';
+                } else {
+                  st.textContent = `Confirmation email sent to ${em}! Please check your inbox and click the link. It will redirect directly to ${redirectUrl}.`;
+                  st.style.color = '#1e6b37';
+                }
+              } catch (err) {
+                st.textContent = err.message || 'Error updating email';
+                st.style.color = '#da373c';
+              }
+            };
           }
-          var savedTheme = 'fall';
-          try { savedTheme = localStorage.getItem('dotgui_theme') || 'fall'; } catch (e) {}
-          themePick.value = savedTheme;
-          applyTheme(savedTheme);
-          themePick.addEventListener('change', function(e) {
-            var v = e.target.value;
-            try { localStorage.setItem('dotgui_theme', v); } catch (e) {}
-            applyTheme(v);
-            flash('Theme saved.');
+
+          // Check if user arrived from email confirmation link
+          if (location.hash.includes('type=email_change') || /message=.*email/i.test(location.hash) || /message=.*email/i.test(location.search)) {
+            history.replaceState(null, '', location.pathname);
+            flash('Email confirmed successfully!');
+            const st = document.getElementById('prof-email-status');
+            if (st) {
+              st.textContent = 'Email confirmed successfully!';
+              st.style.color = '#1e6b37';
+            }
+          }
+
+          const THEME_CARDS = [
+            { id: 'aero', name: 'Aero', color: '#5fa8ee', desc: 'Classic sky blue' },
+            { id: 'night', name: 'Night', color: '#2b5c99', desc: 'Dark navy blue' },
+            { id: 'pink', name: 'Aero Pink', color: '#ee7fb5', desc: 'Soft pastel pink' },
+            { id: 'luna', name: 'Luna XP', color: '#2f78e8', desc: 'Windows XP blue' },
+            { id: 'classic', name: 'Classic Green', color: '#4a7a36', desc: 'Windows retro green' }
+          ];
+
+          function renderThemeCards(currentTheme) {
+            const container = document.getElementById('theme-swatches-grid');
+            if (!container) return;
+            container.innerHTML = '';
+            THEME_CARDS.forEach(t => {
+              const card = document.createElement('div');
+              card.className = 'theme-card' + (t.id === currentTheme ? ' active' : '');
+              card.dataset.themeId = t.id;
+              
+              const swatch = document.createElement('div');
+              swatch.className = 'theme-swatch';
+              swatch.style.background = t.color;
+              
+              const check = document.createElement('span');
+              check.className = 'check-badge';
+              check.textContent = '✓';
+              swatch.appendChild(check);
+
+              const name = document.createElement('span');
+              name.className = 'theme-card-name';
+              name.textContent = t.name;
+
+              card.appendChild(swatch);
+              card.appendChild(name);
+
+              card.onclick = () => {
+                const p = readPrefs();
+                p.theme = t.id;
+                try { localStorage.setItem('ppg_prefs', JSON.stringify(p)); } catch (e) {}
+                const sel = document.getElementById('p-theme');
+                if (sel) sel.value = t.id;
+                ppgApply();
+                renderThemeCards(t.id);
+                flash(`Theme set to ${t.name}.`);
+              };
+
+              container.appendChild(card);
+            });
+          }
+
+          var DEFS = { theme: 'aero', font: 'tahoma', size: 'm', width: 'm', corners: 'rd' };
+          function readPrefs() {
+            try {
+              var p = JSON.parse(localStorage.getItem('ppg_prefs')) || {};
+              if (p.theme === 'cherri') { p.theme = 'aero'; try { localStorage.setItem('ppg_prefs', JSON.stringify(p)); } catch(e){} }
+              return p;
+            } catch (e) { return {}; }
+          }
+          function fillLook() {
+            var p = readPrefs();
+            document.querySelectorAll('[data-pref]').forEach(function(el) {
+              el.value = p[el.dataset.pref] || DEFS[el.dataset.pref];
+            });
+            renderThemeCards(p.theme || 'aero');
+          }
+          document.querySelectorAll('[data-pref]').forEach(function(el) {
+            el.addEventListener('change', function() {
+              var p = readPrefs(); p[el.dataset.pref] = el.value;
+              try { localStorage.setItem('ppg_prefs', JSON.stringify(p)); } catch (e) {}
+              ppgApply();
+              if (el.dataset.pref === 'theme') renderThemeCards(el.value);
+              flash('Look saved.');
+            });
           });
+          fillLook();
           var saved = localStorage.getItem('tabCloaker') || 'default';
           tabCloaker.value = saved;
           setTabCloak(saved);
           refreshRecentCount();
-          // dotgui-panic: global panic key, guards typing
+
+          // Panic key
           document.addEventListener('keydown', function(e) {
             var t = e.target;
             if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
@@ -246,5 +720,7 @@
         </script>
       </main>
     </div>
-  </body>
+  <footer><p>Licence problem or takedown request: contact details are being set up and will be here soon.</p></footer>
+</div>
+</body>
 </html>
