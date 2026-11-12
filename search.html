@@ -7,6 +7,16 @@
     <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="styles.css">
     <script src="theme.js"></script>
+    <style>
+        /* layout only; colours come from styles.css / theme.js */
+        .container { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+        #frameWrap { position: relative; display: flex; flex: 1; min-height: 70vh; }
+        #browserFrame { flex: 1; width: 100%; border: none; background: #fff; }
+        #blocked { position: absolute; inset: 0; display: flex; align-items: center;
+                   justify-content: center; background: rgba(0,0,0,.6); z-index: 5;
+                   padding: 1rem; text-align: center; }
+        #blocked[hidden] { display: none; }
+    </style>
 </head>
 
 <body class="app">
@@ -36,194 +46,191 @@
                 <button id="forwardBtn" title="Forward">Forward</button>
                 <button id="reloadBtn" title="Reload">Reload</button>
             </div>
-            <input type="text" id="urlInput" placeholder="Search the web or enter URL (e.g. youtube.com, google.com)..." autocomplete="off" spellcheck="false">
-            <select id="engineSelect" title="Proxy Mode" style="font-size:12px;padding:3px 8px;border:1px solid var(--bline);border-radius:var(--r);background:#fff;">
-                <option value="uv" selected>Ultraviolet (UV)</option>
-                <option value="proxy">Direct Proxy</option>
-            </select>
+            <input type="text" id="urlInput" placeholder="Search the web or enter URL (e.g. youtube.com)..." autocomplete="off" spellcheck="false">
             <button id="goBtn" class="go">Go</button>
         </div>
         <div id="frameWrap">
-            <iframe id="browserFrame" title="Ultraviolet Web Proxy" src="search-home.html"></iframe>
+            <iframe id="browserFrame" title="Scramjet Browser" src="search-home.html"></iframe>
             <div id="blocked" hidden>
                 <div class="blocked-card">
-                    <h2>Connection notice</h2>
-                    <p id="blockedMsg">Connecting through the Ultraviolet proxy tunnel. If a site takes long, click Direct Proxy.</p>
-                    <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;">
-                        <button id="retryBtn" class="go" type="button">Retry</button>
-                        <button id="directProxyBtn" class="btn" type="button">Direct Proxy</button>
-                    </div>
+                    <h2>Proxy blocked</h2>
+                    <p>Couldn't reach the proxy server. Check your connection and hit Retry.</p>
+                    <button id="retryBtn" class="go" type="button">Retry</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Ultraviolet, BareMux, and Search scripts -->
-    <script src="/baremux/index.js"></script>
-    <script src="/uv/uv.bundle.js"></script>
-    <script src="/uv.config.js"></script>
-    <script src="/search.js"></script>
+    <!-- Scramjet: keep as classic scripts, not modules -->
+    <script src="/scramjet/scramjet.js"></script>
+    <script src="/controller/controller.api.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mercuryworkshop/epoxy-transport@3.0.1/dist/index.js"></script>
 
     <script>
+        const { Controller } = $scramjetController;
+        const { defaultConfig, Tap } = $scramjet;
+        const EpoxyTransport = self.EpoxyTransport.default;
+
         const iframe = document.getElementById("browserFrame");
         const urlInput = document.getElementById("urlInput");
-        const engineSelect = document.getElementById("engineSelect");
         const blockedEl = document.getElementById("blocked");
-        let bareMuxConn = null;
-        let proxyInitPromise = null;
-        let currentTargetUrl = "";
 
-        function showBlocked(msg) {
+        let scramjet = null;
+        let frame = null;
+        let pendingGo = null;
+        let initRunning = false;
+
+        function showBlocked() { try { blockedEl.hidden = false; } catch (e) {} }
+        function hideBlocked() { try { blockedEl.hidden = true; } catch (e) {} }
+
+        function isWispDown(err) {
+            let msg = "";
+            try { msg = String((err && (err.message || err)) || ""); } catch (e) {}
+            return /websocket did not open|WebSocketConnectFailed|Wisp WebSocket failed|All wisps failed/i.test(msg);
+        }
+
+        const BLOCKED_CARD_HTML = "<!DOCTYPE html><html><head><meta charset='utf-8'><style>" +
+            "body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;text-align:center}" +
+            "div{border:1px solid #888;border-radius:16px;padding:1.5rem 2rem;max-width:420px}</style></head><body><div>" +
+            "<h2>Proxy blocked</h2><p>Couldn't reach the proxy server. Check your connection and hit Retry.</p>" +
+            "</div></body></html>";
+
+        function norm(u) {
+            const q = (u || "").trim();
+            if (/^https?:\/\//i.test(q)) return q;
+            if (q && q.indexOf(" ") === -1 && q.indexOf(".") !== -1) return "https://" + q;
+            return "https://html.duckduckgo.com/html/?q=" + encodeURIComponent(q);
+        }
+
+        // inbound from start page via sessionStorage or ?q=
+        (function () {
+            let inbound = null;
+            try { inbound = sessionStorage.getItem("searchQuery"); if (inbound) sessionStorage.removeItem("searchQuery"); } catch (e) {}
+            if (!inbound) {
+                try { inbound = new URLSearchParams(window.location.search).get("q"); } catch (e) {}
+            }
+            if (inbound) {
+                pendingGo = norm(inbound);
+                urlInput.value = pendingGo;
+            }
+        })();
+
+        async function init() {
+            if (initRunning) return;
+            initRunning = true;
             try {
-                if (msg) document.getElementById("blockedMsg").textContent = msg;
-                blockedEl.hidden = false;
-            } catch(e) {}
-        }
-        function hideBlocked() {
-            try { blockedEl.hidden = true; } catch(e) {}
-        }
+                await navigator.serviceWorker.ready;
+                const serviceworker = navigator.serviceWorker.controller ??
+                    (await navigator.serviceWorker.ready).active;
 
-        async function initProxy() {
-            if (proxyInitPromise) return proxyInitPromise;
-            proxyInitPromise = (async () => {
+                let transport = null;
+                const WISP_URL = "wss://wisp-server-workers.dotlyhiyou.workers.dev/";
                 try {
-                    if ("serviceWorker" in navigator) {
-                        await navigator.serviceWorker.register("/sw.js", { scope: "/" });
-                        await navigator.serviceWorker.ready;
-                    }
+                    const t = new EpoxyTransport({ wisp: WISP_URL });
+                    const attempt = t.init();
+                    attempt.catch(function () {});
+                    await Promise.race([
+                        attempt,
+                        new Promise(function (_, rej) {
+                            setTimeout(function () { rej(new Error("wisp timeout: " + WISP_URL)); }, 10000);
+                        })
+                    ]);
+                    transport = t;
+                } catch (e) {
+                    console.warn("Wisp failed: " + WISP_URL, e);
+                }
+                if (!transport) { showBlocked(); return; }
 
-                    bareMuxConn = new BareMux.BareMuxConnection("/baremux/worker.js");
-                    const wispUrl = (location.protocol === "https:" ? "wss:" : "ws:") + "//" + location.host + "/wisp/";
+                scramjet = new Controller({ serviceworker, transport, scramjetConfig: defaultConfig });
+                await scramjet.wait();
 
-                    try {
-                        await bareMuxConn.setTransport("/epoxy/index.mjs", [{ wisp: wispUrl }]);
-                    } catch(err1) {
-                        try {
-                            await bareMuxConn.setTransport("/libcurl/index.mjs", [{ wisp: wispUrl }]);
-                        } catch(err2) {
-                            try {
-                                await bareMuxConn.setTransport("/epoxy/index.mjs", [{ wisp: "wss://wisp-server-workers.dotlyhiyou.workers.dev/" }]);
-                            } catch(err3) {
-                                console.warn("Transport setup warning:", err3);
-                            }
+                frame = scramjet.createFrame(iframe);
+                try {
+                    Tap.tap(frame.hooks.error.request, function (data, ctx) {
+                        const err = data && data.error;
+                        if (isWispDown(err)) {
+                            ctx.suppressError = true;
+                            ctx.setResponse = {
+                                body: BLOCKED_CARD_HTML,
+                                status: 200,
+                                statusText: "OK",
+                                headers: [["Content-Type", "text/html"]]
+                            };
+                            showBlocked();
                         }
-                    }
-                } catch(e) {
-                    console.warn("Service worker / BareMux initialization:", e);
+                    });
+                } catch (hookErr) { console.warn("error-hook failed", hookErr); }
+
+                if (pendingGo) {
+                    const url = pendingGo;
+                    pendingGo = null;
+                    urlInput.value = url;
+                    frame.go(url);
                 }
-            })();
-            return proxyInitPromise;
-        }
-
-        async function navigateTo(rawInput) {
-            hideBlocked();
-            const url = search(rawInput, "https://html.duckduckgo.com/html/?q=%s");
-            currentTargetUrl = url;
-            urlInput.value = url;
-
-            const mode = engineSelect.value;
-            if (mode === "proxy") {
-                iframe.src = "/api/proxy?url=" + encodeURIComponent(url);
-                return;
+                try {
+                    frame.addEventListener("urlchange", function (event) {
+                        if (event && event.url) urlInput.value = event.url;
+                    });
+                } catch (e) {}
+            } catch (e) {
+                console.error(e);
+                showBlocked();
+            } finally {
+                initRunning = false;
             }
-
-            try {
-                await initProxy();
-                if (window.__uv$config && typeof window.__uv$config.encodeUrl === "function") {
-                    const encoded = window.__uv$config.prefix + window.__uv$config.encodeUrl(url);
-                    iframe.src = encoded;
-                    return;
-                }
-            } catch (err) {
-                console.warn("Ultraviolet unblocker error, falling back to direct proxy:", err);
-            }
-
-            // Fallback to server proxy if UV service worker is not active
-            iframe.src = "/api/proxy?url=" + encodeURIComponent(url);
         }
 
         function go() {
-            const v = urlInput.value.trim();
-            if (!v) return;
-            navigateTo(v);
+            hideBlocked();
+            const url = norm(urlInput.value);
+            urlInput.value = url;
+            if (frame) frame.go(url);
+            else pendingGo = url;
         }
 
-        document.getElementById("goBtn").onclick = go;
-        urlInput.addEventListener("keydown", e => { if (e.key === "Enter") go(); });
-
-        engineSelect.addEventListener("change", () => {
-            if (currentTargetUrl && iframe.src !== "search-home.html") {
-                navigateTo(currentTargetUrl);
-            }
+        // search-home.html posts URLs up to the proxy frame
+        window.addEventListener("message", function (e) {
+            if (!e.data || e.data.type !== "dotgui-go" || !e.data.url) return;
+            const url = norm(e.data.url);
+            urlInput.value = url;
+            if (frame) frame.go(url);
+            else pendingGo = url;
         });
 
-        document.getElementById("homeBtn").onclick = () => {
+        document.getElementById("goBtn").onclick = go;
+        urlInput.addEventListener("keydown", function (e) { if (e.key === "Enter") go(); });
+        document.getElementById("backBtn").onclick = function () { if (frame) frame.back(); };
+        document.getElementById("forwardBtn").onclick = function () { if (frame) frame.forward(); };
+        document.getElementById("reloadBtn").onclick = function () { if (frame) frame.reload(); };
+        document.getElementById("homeBtn").onclick = function () {
             urlInput.value = "";
-            currentTargetUrl = "";
+            pendingGo = null;
             iframe.src = "search-home.html";
             hideBlocked();
         };
-        document.getElementById("backBtn").onclick = () => {
-            try { iframe.contentWindow.history.back(); } catch(e) {}
-        };
-        document.getElementById("forwardBtn").onclick = () => {
-            try { iframe.contentWindow.history.forward(); } catch(e) {}
-        };
-        document.getElementById("reloadBtn").onclick = () => {
-            try { iframe.contentWindow.location.reload(); } catch(e) { iframe.src = iframe.src; }
-        };
+        document.getElementById("retryBtn").onclick = function () { hideBlocked(); init(); };
 
-        document.getElementById("retryBtn").onclick = () => {
-            if (currentTargetUrl) navigateTo(currentTargetUrl);
-        };
-        document.getElementById("directProxyBtn").onclick = () => {
-            if (currentTargetUrl) {
-                hideBlocked();
-                engineSelect.value = "proxy";
-                iframe.src = "/api/proxy?url=" + encodeURIComponent(currentTargetUrl);
-            }
-        };
-
-        // Message listener from search-home.html
-        window.addEventListener("message", e => {
-            if (e.data && e.data.type === "dotgui-go" && e.data.url) {
-                navigateTo(e.data.url);
-            }
-        });
-
-        // Read query parameter on page load
-        (function() {
-            let inbound = null;
-            try {
-                inbound = sessionStorage.getItem("searchQuery");
-                if (inbound) sessionStorage.removeItem("searchQuery");
-            } catch(e) {}
-            if (!inbound) {
-                try { inbound = new URLSearchParams(window.location.search).get("q"); } catch(e) {}
-            }
-            if (inbound) {
-                urlInput.value = inbound;
-                navigateTo(inbound);
-            } else {
-                initProxy();
-            }
-        })();
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("/sw.js").then(init);
+        } else {
+            console.error("No service worker support");
+        }
     </script>
 
     <script>
-        // dotgui-panic: global panic key
-        document.addEventListener('keydown', function(e) {
-            var t = e.target;
+        // panic key
+        document.addEventListener('keydown', function (e) {
+            const t = e.target;
             if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
-            var key = '';
-            try { key = localStorage.getItem('dotgui_panic_key') || 'k'; } catch (err) { key = 'k'; }
-            if ((e.key || '').toLowerCase() !== (key || '').toLowerCase() || !key) return;
+            let key = 'k';
+            try { key = localStorage.getItem('dotgui_panic_key') || 'k'; } catch (err) {}
+            if (!key || (e.key || '').toLowerCase() !== key.toLowerCase()) return;
             try {
                 document.title = 'Google';
-                var f = document.querySelector("link[rel~='icon']");
+                const f = document.querySelector("link[rel~='icon']");
                 if (f) f.href = 'https://www.google.com/favicon.ico';
             } catch (err) {}
-            var go = true, url = 'https://classroom.google.com';
+            let go = true, url = 'https://classroom.google.com';
             try {
                 go = (localStorage.getItem('dotgui_panic_redirect') || 'true') === 'true';
                 url = localStorage.getItem('dotgui_panic_url') || url;
